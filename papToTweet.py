@@ -5,15 +5,12 @@
 # No liability blah blah use at your own risk, etc
 
 import lxml.html as html
-import re
-#from twitter import Twitter, OAuth
-
-#raw xml
-
-papPage = "http://www.pap.fr/annonce/locations-appartement-paris-1er-g37768g37769g37770g37771g37772g37773g37774g37776g37777g37778g37779g37785g37786g37787-jusqu-a-1600-euros-a-partir-de-55-m2-40-annonces-par-page"
+import re, time
+from twitter import Twitter, OAuth
+from config import pap_url, twitter_key, twitter_secret, twitter_token, twitter_token_secret
 
 #xml parsed
-doc = html.parse(papPage)
+doc = html.parse(pap_url)
 doc = doc.getroot()
 annonces = doc.find_class("annonce")
 
@@ -48,12 +45,15 @@ try:
 except:
     lastAnnonces = []
 
+twitter = Twitter(auth=OAuth(twitter_token, twitter_token_secret, twitter_key, twitter_secret))
+
 for annonce in stringAnnonces:
     if annonce in lastAnnonces:
         pass
     else:
         print annonce
-        #twitter.statuses.new(annonce)
+        twitter.statuses.new(annonce)
+        time.sleep(10)
 
 with open("lastAnnonces.txt","w") as f:
     for string in stringAnnonces :
