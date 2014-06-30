@@ -12,12 +12,9 @@ import random
 from os import popen
 from datetime import datetime
 
-#specify user / pass 
-user = "crisedulogement" 
-password = "gicipa"   
 #raw xml 
 
-papPage="http://www.pap.fr/annonce/locations-appartement-paris-01er-g37768g37769g37770g37771g37772g37773g37774g37776g37777g37778g37785g37786g37787-jusqu-a-850-euros-a-partir-de-30-m2" 
+papPage="http://www.pap.fr/annonce/locations-appartement-paris-1er-g37768g37769g37770g37771g37772g37773g37774g37776g37777g37778g37779g37785g37786g37787-jusqu-a-1600-euros-a-partir-de-55-m2" 
   
 #xml parsed 
 doc=html.parse(papPage)
