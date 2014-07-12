@@ -1,8 +1,4 @@
 
 pap_url = "http://www.pap.fr/annonce/locations-appartement-paris-1er-g37768g37769g37770g37771g37772g37773g37774g37776g37777g37778g37779g37785g37786g37787-jusqu-a-1600-euros-a-partir-de-55-m2-40-annonces-par-page"
 
-twitter_key = "xxxxxxxxxxxxxxxxxxxxxx"
-twitter_secret = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-twitter_token = "xxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-twitter_token_secret = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-
+emails = ['example@example.com']

@@ -6,8 +6,9 @@
 
 import lxml.html as html
 import re, time
-from twitter import Twitter, OAuth
-from config import pap_url, twitter_key, twitter_secret, twitter_token, twitter_token_secret
+import smtplib
+from email.mime.text import MIMEText
+from config import pap_url, emails
 
 #xml parsed
 doc = html.parse(pap_url)
@@ -17,6 +18,7 @@ annonces = doc.find_class("annonce")
 stringAnnonces = []
 
 re_clean_html = re.compile("[\n\s\r\t]+", re.M)
+re_clean_url = re.compile("\s+http.*$", re.M)
 re_annonce = re.compile("^.*(\d\D+pièces.*€).*$")
 re_tel = re.compile("((\d{2}\W*?){4}\d{2})")
 for annonce in annonces:
@@ -45,14 +47,19 @@ try:
 except:
     lastAnnonces = []
 
-twitter = Twitter(auth=OAuth(twitter_token, twitter_token_secret, twitter_key, twitter_secret))
-
 for annonce in stringAnnonces:
     if annonce in lastAnnonces:
         pass
     else:
         print annonce
-        twitter.statuses.new(annonce)
+        title = re_clean_url.sub('', annonce)
+        msg = MIMEText(annonce)
+        msg['Subject'] = '[PAP] %s' % title
+        msg['From'] = 'no-reply@rouxrc-pap.nul'
+        msg['To'] = ", ".join(emails)
+        s = smtplib.SMTP('localhost')
+        s.sendmail(msg['From'], emails, msg.as_string())
+        s.quit()
         time.sleep(10)
 
 with open("lastAnnonces.txt","w") as f:
