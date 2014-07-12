@@ -51,16 +51,13 @@ for annonce in stringAnnonces:
     if annonce in lastAnnonces:
         pass
     else:
-        print annonce
-        title = re_clean_url.sub('', annonce)
+        title = re_clean_url.sub('', annonce).replace('\n', ' ')
         msg = MIMEText(annonce)
         msg['Subject'] = '[PAP] %s' % title
-        msg['From'] = 'no-reply@rouxrc-pap.nul'
-        msg['To'] = ", ".join(emails)
         s = smtplib.SMTP('localhost')
-        s.sendmail(msg['From'], emails, msg.as_string())
+        s.sendmail('no-reply@rouxrc-pap.nul', emails, msg.as_string())
         s.quit()
-        time.sleep(10)
+        time.sleep(5)
 
 with open("lastAnnonces.txt","w") as f:
     for string in stringAnnonces :
