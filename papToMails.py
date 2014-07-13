@@ -40,14 +40,16 @@ for annonce in annonces:
     tweet += "\nhttp://www.pap.fr" + url
     stringAnnonces.append(tweet+"\n")
 
+lastAnnonces = []
 try:
     with open("lastAnnonces.txt") as f:
         for l in f.readlines():
-            lastAnnonces.append(l.replace("\t", "\n"))
+            lastAnnonces.append(l.replace("\t", "\n").strip('\n'))
 except:
-    lastAnnonces = []
+    pass
 
 for annonce in stringAnnonces:
+    annonce = annonce.strip('\n')
     if annonce in lastAnnonces:
         pass
     else:
