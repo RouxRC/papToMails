@@ -87,7 +87,8 @@ while cururl:
         taille = annonce.xpath("div/div/ul[@class='property_list']/li")[-1].text_content().encode('utf8')
         tel = annonce.xpath("div/div/div[@data-phone]/@data-phone")[0]
         title = annonce.xpath("div/div/h2")[0].text_content().encode("utf-8").replace("Appartement ", "")
-        prix = annonce.xpath("div/div/div/a[@class='amount']")[0].text_content().encode("utf-8").replace(' ', '')
+        prix = annonce.xpath("div/div/div/a[@class='amount']")[0].text_content()
+        prix = prix.encode("utf-8").replace(' ', '').replace(' ', '')
         desc = annonce.xpath("div/div/p[@class='description']")[0].text_content().encode("utf-8").strip()
         title = title.replace("pièces", "pièces %s %s" % (taille, prix))
         text = "%s\n%s\n%s\n" % (title, desc, tel)
