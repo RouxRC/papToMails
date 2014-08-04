@@ -1,3 +1,4 @@
 config.py
 lastAnnonces.txt
 *.pyc
+lock.pid
