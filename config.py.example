@@ -1,6 +1,8 @@
 
 pap_url = "http://www.pap.fr/annonce/locations-appartement-paris-1er-g37768g37769g37770g37771g37772g37773g37774g37776g37777g37778g37779g37785g37786g37787-jusqu-a-1600-euros-a-partir-de-55-m2-40-annonces-par-page"
 
+seloger_url = "http://www.seloger.com/list.htm?cp=75&etagemin=2&fraicheur=14&idtt=1&idtypebien=1,10,2,9&nb_chambres=2,3,4,4%2b&nb_pieces=3,4,4%2b&pxmax=1650&surfacemin=55&tri=a_px_loyer&LISTING-LISTpg=1"
+
 emails = ['example@example.com']
 
 DEBUG = False
