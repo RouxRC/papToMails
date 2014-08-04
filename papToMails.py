@@ -5,62 +5,61 @@
 # No liability blah blah use at your own risk, etc
 
 import lxml.html as html
-import re, time
+import re, time, sys
 import smtplib
 from email.mime.text import MIMEText
-from config import pap_url, emails
+from config import DEBUG, pap_url, emails
 
-#xml parsed
+newAnnonces = {}
+lastAnnonces = {}
+try:
+     with open("lastAnnonces.txt") as f:
+        for url in f.readlines():
+             lastAnnonces[url.strip('\n')] = 1
+except:
+    pass
+
+re_clean_html = re.compile("[\n\s\r\t]+", re.M)
+re_annonce = re.compile("^.*(\d\D+pièces.*€).*$")
+re_tel = re.compile("((\d{2}\W*?){4}\d{2})")
+
+# PAP
 doc = html.parse(pap_url)
 doc = doc.getroot()
 annonces = doc.find_class("annonce")
-
-stringAnnonces = []
-
-re_clean_html = re.compile("[\n\s\r\t]+", re.M)
-re_clean_url = re.compile("\s+http.*$", re.M)
-re_annonce = re.compile("^.*(\d\D+pièces.*€).*$")
-re_tel = re.compile("((\d{2}\W*?){4}\d{2})")
 for annonce in annonces:
-    tweet = ""
+    url = annonce.xpath("div[@class='header-annonce']/a/@href")[0]
+    url = "http://www.pap.fr" + url
+    if url in lastAnnonces:
+        continue
+    lastAnnonces[url] = 1
+    text = ""
     header = annonce.find_class("header-annonce")[0].text_content().encode("utf-8")
     header = re_clean_html.sub(" ", header)
     header = re_annonce.sub(r"\1", header)
     header = header.replace(".", "").replace("Paris ", "")
-    tweet += header
+    text += header
     try:
         metro = annonce.find_class("metro")[0].text_content().encode("utf-8")
-        tweet += "\nmetro" + re_clean_html.sub(" ", metro)
+        text += "\nmetro" + re_clean_html.sub(" ", metro)
     except: pass
     try:
         description = annonce.find_class("description")[0].text_content().encode("utf-8")
-        tweet += " " + re_tel.search(description.strip()).group(0)
+        text += " " + re_tel.search(description.strip()).group(0)
     except: pass
-    url = annonce.xpath("div[@class='header-annonce']/a/@href")[0]
-    tweet += "\nhttp://www.pap.fr" + url
-    stringAnnonces.append(tweet+"\n")
+    newAnnonces[url] = text
 
-lastAnnonces = []
-try:
-    with open("lastAnnonces.txt") as f:
-        for l in f.readlines():
-            lastAnnonces.append(l.replace("\t", "\n").strip('\n'))
-except:
-    pass
-
-for annonce in stringAnnonces:
-    annonce = annonce.strip('\n')
-    if annonce in lastAnnonces:
-        pass
+for url, annonce in newAnnonces.items():
+    msg = MIMEText(annonce + "\n" + url)
+    msg['Subject'] = '[PAP]' + annonce
+    if DEBUG:
+        print >> sys.stderr, "SendMail", msg.as_string(), "\n----\n"
     else:
-        title = re_clean_url.sub('', annonce).replace('\n', ' ')
-        msg = MIMEText(annonce)
-        msg['Subject'] = '[PAP] %s' % title
         s = smtplib.SMTP('localhost')
         s.sendmail('no-reply@rouxrc-pap.nul', emails, msg.as_string())
         s.quit()
         time.sleep(5)
 
-with open("lastAnnonces.txt","w") as f:
-    for string in stringAnnonces :
-        f.write(string.replace("\n", "\t")+"\n")
+with open("lastAnnonces.txt", "w") as f:
+    for url in lastAnnonces.keys():
+        print >> f, url
