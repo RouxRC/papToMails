@@ -77,6 +77,7 @@ while cururl:
     annonces = doc.find_class("listing")
     for annonce in annonces:
         url = annonce.xpath("div/div/div/a[@class='amount']/@href")[0]
+        url = url[:url.find('?')]
         if url in lastAnnonces:
             continue
         if DEBUG:
