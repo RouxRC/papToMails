@@ -3,6 +3,8 @@ pap_url = "http://www.pap.fr/annonce/locations-appartement-paris-1er-g37768g3776
 
 seloger_url = "http://www.seloger.com/list.htm?cp=75&etagemin=2&fraicheur=14&idtt=1&idtypebien=1,10,2,9&nb_chambres=2,3,4,4%2b&nb_pieces=3,4,4%2b&pxmax=1650&surfacemin=55&tri=a_px_loyer&LISTING-LISTpg=1"
 
+paruvendu_url = "http://www.paruvendu.fr/immobilier/annonceimmofo/liste/listeAnnonces?tt=5&tbApp=1&tbDup=1&tbChb=1&tbLof=1&tbAtl=1&tbMai=1&tbVil=1&tbCha=1&tbPro=1&tbHot=1&at=1&nbp0=30&sur0=55&px1=1650&pa=FR&lo=75"
+
 emails = ['example@example.com']
 
 DEBUG = False

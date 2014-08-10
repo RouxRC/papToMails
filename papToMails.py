@@ -9,7 +9,7 @@ import re, time, sys
 import urllib
 import smtplib
 from email.mime.text import MIMEText
-from config import DEBUG, pap_url, seloger_url, emails
+from config import DEBUG, pap_url, seloger_url, paruvendu_url, emails
 
 lastAnnonces = {}
 try:
@@ -34,7 +34,9 @@ def sendMail(site, title, annonce, url):
 re_clean_html = re.compile("[\n\s\r\t]+", re.M)
 re_annonce = re.compile("^.*(\d\D+pièces.*€).*$")
 re_tel = re.compile("((\d{2}\W*?){4}\d{2})")
-re_metro = re.compile(ur"m[eé]tro\s+(.*?)\s*(\.|,|et|dans|appart|$)", re.I)
+re_metro = re.compile(ur"(?:m[eé]tro|m°)\s+(.*?)\s*(\.|,|et|dans|appart|$)", re.I)
+re_clean_lnbrk = re.compile(r"[\n\r\s\t]+")
+re_format_paruv = re.compile(r'^(.*) environ - (.*pièces) (.*)$')
 
 # PAP.FR
 doc = html.parse(pap_url)
@@ -84,7 +86,6 @@ while cururl:
             print >> sys.stderr, url
         else:
             lastAnnonces[url] = 1
-        text = ""
         taille = annonce.xpath("div/div/ul[@class='property_list']/li")[-1].text_content().encode('utf8')
         tel = annonce.xpath("div/div/div[@data-phone]/@data-phone")[0]
         title = annonce.xpath("div/div/h2")[0].text_content().encode("utf-8").replace("Appartement ", "")
@@ -95,8 +96,38 @@ while cururl:
         text = "%s\n%s\n%s\n" % (title, desc, tel)
         metro = re_metro.findall(desc.decode("utf-8"))
         if "".join([a for a,_ in metro]).strip():
-            title += "\nmétro " + " / ".join([a.encode('utf-8') for a,_ in metro if a.strip()])
+            title += " métro " + " / ".join([a.encode('utf-8') for a,_ in metro if a.strip()])
         sendMail("SeLoger", title, text, url)
+
+# PARUVENDU.FR
+doc = html.parse(paruvendu_url)
+doc = doc.getroot()
+annonces = doc.find_class("annonce")
+for annonce in annonces:
+    url = "http://www.paruvendu.fr" + annonce.xpath("a/@href")[0]
+    if url in lastAnnonces:
+        continue
+    if DEBUG:
+        print >> sys.stderr, url
+    else:
+        lastAnnonces[url] = 1
+    prix = annonce.xpath("a/span[@class='price']")[0].text_content().strip().replace(" ", "")
+    prix = prix[:prix.find('*')].encode("utf-8")
+    title = annonce.xpath("a/span[@class='desc']/h3")[0].text_content().encode("utf-8")
+    title = re_clean_lnbrk.sub(" ", title).replace("Location - ", "")
+    title = title.replace("Appartement - ", "").replace("Maison - ", "")
+    title = re_format_paruv.sub(r"\2 \1 %s, \3" % prix, title).strip()
+    date = annonce.xpath("a/p[@class='date']")[0].text_content().encode("utf-8")
+    desc = re_clean_lnbrk.sub(" ", annonce.xpath("a/span[@class='desc']")[0].text_content()).encode("utf-8").strip()
+    details = re_clean_lnbrk.sub(" ", annonce.xpath("a/span[@class='price']")[0].text_content()).encode("utf-8").strip()
+    desc = "%s\n%s\n%s\n" % (date, desc, details)
+    if annonce.xpath("a/span[@class='price']/p/img/@src")[0] == "http://static.paruvendu.com/immobilier/img/pictos/pic_part.png":
+        desc += "(particulier)\n"
+    metro = re_metro.findall(desc.decode("utf-8"))
+    if "".join([a for a,_ in metro]).strip():
+        title += " métro " + " / ".join([a.encode('utf-8') for a,_ in metro if a.strip()])
+    sendMail("ParuVendu", title, desc, url)
+
 
 with open("lastAnnonces.txt", "w") as f:
     urls = lastAnnonces.keys()
