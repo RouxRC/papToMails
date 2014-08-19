@@ -75,7 +75,7 @@ else:
 # SELOGER.COM
 cururl = seloger_url
 while cururl:
-    doc = html.fromstring(urllib.urlopen(cururl).read().decode("utf8"))
+    doc = html.fromstring(urllib2.urlopen(cururl).read().decode("utf8"))
     nexturl = doc.find_class("pagination_next")
     if nexturl and nexturl[0].xpath("@href"):
         cururl = "http://www.seloger.com/"+nexturl[0].xpath("@href")[0]
