@@ -11,6 +11,9 @@ import smtplib
 from email.mime.text import MIMEText
 from config import DEBUG, pap_url, seloger_url, paruvendu_url, emails
 
+import socket
+socket.setdefaulttimeout(60)
+
 lastAnnonces = {}
 try:
     with open("lastAnnonces.txt") as f:
