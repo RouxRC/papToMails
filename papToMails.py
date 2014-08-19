@@ -6,13 +6,10 @@
 
 import lxml.html as html
 import re, time, sys
-import urllib
+import urllib2
 import smtplib
 from email.mime.text import MIMEText
 from config import DEBUG, pap_url, seloger_url, paruvendu_url, emails
-
-import socket
-socket.setdefaulttimeout(60)
 
 lastAnnonces = {}
 try:
@@ -42,33 +39,38 @@ re_clean_lnbrk = re.compile(r"[\n\r\s\t]+")
 re_format_paruv = re.compile(r'^(.*) environ - (.*pièces) (.*)$')
 
 # PAP.FR
-doc = html.parse(pap_url)
-doc = doc.getroot()
-annonces = doc.find_class("annonce")
-for annonce in annonces:
-    url = annonce.xpath("div[@class='header-annonce']/a/@href")[0]
-    url = "http://www.pap.fr" + url
-    if url in lastAnnonces:
-        continue
-    if DEBUG:
-        print >> sys.stderr, url
-    else:
-        lastAnnonces[url] = 1
-    text = ""
-    header = annonce.find_class("header-annonce")[0].text_content().encode("utf-8")
-    header = re_clean_html.sub(" ", header)
-    header = re_annonce.sub(r"\1", header)
-    header = header.replace(".", "").replace("Paris ", "")
-    text += header
-    try:
-        metro = annonce.find_class("metro")[0].text_content().encode("utf-8")
-        text += "\nmétro " + re_clean_html.sub(" ", metro)
-    except: pass
-    try:
-        description = annonce.find_class("description")[0].text_content().encode("utf-8")
-        text += " " + re_tel.search(description.strip()).group(0)
-    except: pass
-    sendMail("PAP", text, text, url)
+#doc = html.parse(pap_url)
+#doc = doc.getroot()
+try:
+    doc = html.fromstring(urllib2.urlopen(pap_url, timeout=60).read())
+except urllib2.URLError:
+    pass
+else:
+    annonces = doc.find_class("annonce")
+    for annonce in annonces:
+        url = annonce.xpath("div[@class='header-annonce']/a/@href")[0]
+        url = "http://www.pap.fr" + url
+        if url in lastAnnonces:
+            continue
+        if DEBUG:
+            print >> sys.stderr, url
+        else:
+            lastAnnonces[url] = 1
+        text = ""
+        header = annonce.find_class("header-annonce")[0].text_content().encode("utf-8")
+        header = re_clean_html.sub(" ", header)
+        header = re_annonce.sub(r"\1", header)
+        header = header.replace(".", "").replace("Paris ", "")
+        text += header
+        try:
+            metro = annonce.find_class("metro")[0].text_content().encode("utf-8")
+            text += "\nmétro " + re_clean_html.sub(" ", metro)
+        except: pass
+        try:
+            description = annonce.find_class("description")[0].text_content().encode("utf-8")
+            text += " " + re_tel.search(description.strip()).group(0)
+        except: pass
+        sendMail("PAP", text, text, url)
 
 # SELOGER.COM
 cururl = seloger_url
