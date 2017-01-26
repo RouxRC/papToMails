@@ -43,7 +43,6 @@ except (urllib2.URLError, ValueError):
     pass
 else:
     annonces = doc.find_class("search-results-item")
-    print html.tostring(annonces[0])
     for annonce in annonces:
         url = annonce.xpath("div/a[@class='title-item']/@href")[0]
         if not url.startswith("http"):
@@ -139,6 +138,7 @@ else:
         url = annonce.xpath("a/@href")[0]
         if not url.startswith("http"):
             url = "http://www.paruvendu.fr" + url
+        url = url[:url.find('#')]
         if url in lastAnnonces:
             continue
         if DEBUG:
