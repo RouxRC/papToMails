@@ -43,7 +43,7 @@ re_format_paruv = re.compile(r'^(.*) environ - (.*pièces) (.*)$')
 #doc = doc.getroot()
 try:
     doc = html.fromstring(urllib2.urlopen(pap_url, timeout=60).read())
-except urllib2.URLError:
+except (urllib2.URLError, ValueError):
     pass
 else:
     annonces = doc.find_class("annonce")
@@ -103,35 +103,47 @@ while cururl:
         if "".join([a for a,_ in metro]).strip():
             title += " métro " + " / ".join([a.encode('utf-8') for a,_ in metro if a.strip()])
         sendMail("SeLoger", title, text, url)
+    nexturl = doc.find_class("pagination_next")
+    if nexturl and nexturl[0].xpath("@href"):
+        cururl = nexturl[0].xpath("@href")[0].replace(" ", "%20")
+        if not cururl.startswith("http://"):
+            cururl = "http://www.seloger.com/"+cururl
+    else:
+        cururl = ""
+    time.sleep(5)
 
 # PARUVENDU.FR
-doc = html.parse(paruvendu_url)
-doc = doc.getroot()
-annonces = doc.find_class("annonce")
-for annonce in annonces:
-    url = "http://www.paruvendu.fr" + annonce.xpath("a/@href")[0]
-    if url in lastAnnonces:
-        continue
-    if DEBUG:
-        print >> sys.stderr, url
-    else:
-        lastAnnonces[url] = 1
-    prix = annonce.xpath("a/span[@class='price']")[0].text_content().strip().replace(" ", "")
-    prix = prix[:prix.find('*')].encode("utf-8")
-    title = annonce.xpath("a/span[@class='desc']/h3")[0].text_content().encode("utf-8")
-    title = re_clean_lnbrk.sub(" ", title).replace("Location - ", "")
-    title = title.replace("Appartement - ", "").replace("Maison - ", "")
-    title = re_format_paruv.sub(r"\2 \1 %s, \3" % prix, title).strip()
-    date = annonce.xpath("a/p[@class='date']")[0].text_content().encode("utf-8")
-    desc = re_clean_lnbrk.sub(" ", annonce.xpath("a/span[@class='desc']")[0].text_content()).encode("utf-8").strip()
-    details = re_clean_lnbrk.sub(" ", annonce.xpath("a/span[@class='price']")[0].text_content()).encode("utf-8").strip()
-    desc = "%s\n%s\n%s\n" % (date, desc, details)
-    if annonce.xpath("a/span[@class='price']/p/img/@src")[0] == "http://static.paruvendu.com/immobilier/img/pictos/pic_part.png":
-        desc += "(particulier)\n"
-    metro = re_metro.findall(desc.decode("utf-8"))
-    if "".join([a for a,_ in metro]).strip():
-        title += " métro " + " / ".join([a.encode('utf-8') for a,_ in metro if a.strip()])
-    sendMail("ParuVendu", title, desc, url)
+try:
+    doc = html.parse(paruvendu_url)
+except IOError:
+    pass
+else:
+    doc = doc.getroot()
+    annonces = doc.find_class("annonce")
+    for annonce in annonces:
+        url = "http://www.paruvendu.fr" + annonce.xpath("a/@href")[0]
+        if url in lastAnnonces:
+            continue
+        if DEBUG:
+            print >> sys.stderr, url
+        else:
+            lastAnnonces[url] = 1
+        prix = annonce.xpath("a/span[@class='price']")[0].text_content().strip().replace(" ", "")
+        prix = prix[:prix.find('*')].encode("utf-8")
+        title = annonce.xpath("a/span[@class='desc']/h3")[0].text_content().encode("utf-8")
+        title = re_clean_lnbrk.sub(" ", title).replace("Location - ", "")
+        title = title.replace("Appartement - ", "").replace("Maison - ", "")
+        title = re_format_paruv.sub(r"\2 \1 %s, \3" % prix, title).strip()
+        date = annonce.xpath("a/p[@class='date']")[0].text_content().encode("utf-8")
+        desc = re_clean_lnbrk.sub(" ", annonce.xpath("a/span[@class='desc']")[0].text_content()).encode("utf-8").strip()
+        details = re_clean_lnbrk.sub(" ", annonce.xpath("a/span[@class='price']")[0].text_content()).encode("utf-8").strip()
+        desc = "%s\n%s\n%s\n" % (date, desc, details)
+        if annonce.xpath("a/span[@class='price']/p/img/@src")[0] == "http://static.paruvendu.com/immobilier/img/pictos/pic_part.png":
+            desc += "(particulier)\n"
+        metro = re_metro.findall(desc.decode("utf-8"))
+        if "".join([a for a,_ in metro]).strip():
+            title += " métro " + " / ".join([a.encode('utf-8') for a,_ in metro if a.strip()])
+        sendMail("ParuVendu", title, desc, url)
 
 
 with open("lastAnnonces.txt", "w") as f:
