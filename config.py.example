@@ -6,5 +6,6 @@ seloger_url = "http://www.seloger.com/list.htm?cp=75&etagemin=2&fraicheur=14&idt
 paruvendu_url = "http://www.paruvendu.fr/immobilier/annonceimmofo/liste/listeAnnonces?tt=5&tbApp=1&tbDup=1&tbChb=1&tbLof=1&tbAtl=1&tbMai=1&tbVil=1&tbCha=1&tbPro=1&tbHot=1&at=1&nbp0=30&sur0=55&px1=1650&pa=FR&lo=75"
 
 emails = ['example@example.com']
+admin_emails = ['example@example.com']
 
 DEBUG = False

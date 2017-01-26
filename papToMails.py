@@ -11,7 +11,7 @@ import re, time, sys
 import urllib2
 import smtplib
 from email.mime.text import MIMEText
-from config import DEBUG, pap_url, seloger_url, paruvendu_url, emails
+from config import DEBUG, pap_url, seloger_url, paruvendu_url, emails, admin_emails
 
 lastAnnonces = {}
 try:
@@ -21,7 +21,7 @@ try:
 except:
     pass
 
-def sendMail(site, title, annonce, url):
+def sendMail(site, title, annonce, url, admin=False):
     title = title.replace("\n", " ")
     msg = MIMEText(annonce + "\n" + url)
     msg['Subject'] = '[%s] %s' % (site, title)
@@ -29,7 +29,7 @@ def sendMail(site, title, annonce, url):
         print >> sys.stderr, "SendMail", msg.as_string(), "\n----\n"
     else:
         s = smtplib.SMTP('localhost')
-        s.sendmail('no-reply@rouxrc-pap.nul', emails, msg.as_string())
+        s.sendmail('no-reply@rouxrc-pap.nul', admin_emails if admin else emails, msg.as_string())
         s.quit()
         time.sleep(5)
 
@@ -95,6 +95,10 @@ opener.addheaders = [
 while cururl:
     doc = html.fromstring(gunzip(opener.open(cururl).read()).decode("utf8"))
     annonces = doc.find_class("listing")
+    if not annonces:
+        print >> sys.stderr, "WARNING:", "no results found for", cururl, "\n----\n"
+        sendMail("SeLoger", "NO RESULTS", "Warning, no results found for:", cururl, admin=True)
+        break
     for annonce in annonces:
         url = annonce.xpath("div/div/div/a/@href")[0]
         url = url[:url.find('?')]
