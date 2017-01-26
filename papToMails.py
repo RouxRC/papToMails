@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright Josh Rendek 2009 bluescripts.net
-# No liability blah blah use at your own risk, etc
-
 import lxml.html as html
 from cStringIO import StringIO
 from gzip import GzipFile
@@ -35,23 +32,22 @@ def sendMail(site, title, annonce, url, admin=False):
 
 re_clean_html = re.compile("[\n\s\r\t]+", re.M)
 re_annonce = re.compile("^.*(\d\D+pièces.*€).*$")
-re_tel = re.compile("((\d{2}\W*?){4}\d{2})")
 re_metro = re.compile(ur"(?:m[eé]tro|m°)\s+(.*?)\s*(\.|,|et|dans|appart|$)", re.I)
 re_clean_lnbrk = re.compile(r"[\n\r\s\t]+")
 re_format_paruv = re.compile(r'^(.*) environ - (.*pièces) (.*)$')
 
 # PAP.FR
-#doc = html.parse(pap_url)
-#doc = doc.getroot()
 try:
     doc = html.fromstring(urllib2.urlopen(pap_url, timeout=60).read())
 except (urllib2.URLError, ValueError):
     pass
 else:
-    annonces = doc.find_class("annonce")
+    annonces = doc.find_class("search-results-item")
+    print html.tostring(annonces[0])
     for annonce in annonces:
-        url = annonce.xpath("div[@class='header-annonce']/a/@href")[0]
-        url = "http://www.pap.fr" + url
+        url = annonce.xpath("div/a[@class='title-item']/@href")[0]
+        if not url.startswith("http"):
+            url = "http://www.pap.fr" + url
         if url in lastAnnonces:
             continue
         if DEBUG:
@@ -59,18 +55,17 @@ else:
         else:
             lastAnnonces[url] = 1
         text = ""
-        header = annonce.find_class("header-annonce")[0].text_content().encode("utf-8")
+        header = annonce.find_class("title-item")[0].text_content().encode("utf-8")
         header = re_clean_html.sub(" ", header)
         header = re_annonce.sub(r"\1", header)
         header = header.replace(".", "").replace("Paris ", "")
         text += header
         try:
-            metro = annonce.find_class("metro")[0].text_content().encode("utf-8")
+            metro = annonce.find_class("item-transports")[0].text_content().encode("utf-8")
             text += "\nmétro " + re_clean_html.sub(" ", metro)
         except: pass
         try:
-            description = annonce.find_class("description")[0].text_content().encode("utf-8")
-            text += " " + re_tel.search(description.strip()).group(0)
+            text += " " + annonce.find_class("item-description")[0].text_content().encode("utf-8").strip()
         except: pass
         sendMail("PAP", text, text, url)
 
@@ -126,8 +121,8 @@ while cururl:
     nexturl = doc.find_class("pagination_next")
     if nexturl and nexturl[0].xpath("@href"):
         cururl = nexturl[0].xpath("@href")[0].replace(" ", "%20")
-        if not cururl.startswith("http://"):
-            cururl = "http://www.seloger.com/"+cururl
+        if not cururl.startswith("http"):
+            cururl = "http://www.seloger.com/" + cururl
     else:
         cururl = ""
     time.sleep(5)
@@ -141,7 +136,9 @@ else:
     doc = doc.getroot()
     annonces = doc.find_class("annonce")
     for annonce in annonces:
-        url = "http://www.paruvendu.fr" + annonce.xpath("a/@href")[0]
+        url = annonce.xpath("a/@href")[0]
+        if not url.startswith("http"):
+            url = "http://www.paruvendu.fr" + url
         if url in lastAnnonces:
             continue
         if DEBUG:
