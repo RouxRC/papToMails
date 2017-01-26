@@ -148,17 +148,18 @@ else:
             print >> sys.stderr, url
         else:
             lastAnnonces[url] = 1
-        prix = annonce.xpath("a/span[@class='price']")[0].text_content().strip().replace(" ", "")
+        prix = annonce.xpath("a/span[@class='price2']")[0].text_content().strip().replace(" ", "")
         prix = prix[:prix.find('*')].encode("utf-8")
-        title = annonce.xpath("a/span[@class='desc']/h3")[0].text_content().encode("utf-8")
+        title = annonce.xpath("a/span[@class='desc2']/h3")[0].text_content().encode("utf-8")
         title = re_clean_lnbrk.sub(" ", title).replace("Location - ", "")
         title = title.replace("Appartement - ", "").replace("Maison - ", "")
         title = re_format_paruv.sub(r"\2 \1 %s, \3" % prix, title).strip()
-        date = annonce.xpath("a/p[@class='date']")[0].text_content().encode("utf-8")
-        desc = re_clean_lnbrk.sub(" ", annonce.xpath("a/span[@class='desc']")[0].text_content()).encode("utf-8").strip()
-        details = re_clean_lnbrk.sub(" ", annonce.xpath("a/span[@class='price']")[0].text_content()).encode("utf-8").strip()
+        dates = annonce.xpath("a/p")
+        date = dates[0].text_content().encode("utf-8") if dates else ""
+        desc = re_clean_lnbrk.sub(" ", annonce.xpath("a/span[@class='desc2']")[0].text_content()).encode("utf-8").strip()
+        details = re_clean_lnbrk.sub(" ", annonce.xpath("a/span[@class='price2']")[0].text_content()).encode("utf-8").strip()
         desc = "%s\n%s\n%s\n" % (date, desc, details)
-        if annonce.xpath("a/span[@class='price']/p/img/@src")[0] == "http://static.paruvendu.com/immobilier/img/pictos/pic_part.png":
+        if annonce.xpath("a/span[@class='price2']/p/img/@src")[0] == "http://static.paruvendu.com/immobilier/img/pictos/pic_part.png":
             desc += "(particulier)\n"
         metro = re_metro.findall(desc.decode("utf-8"))
         if "".join([a for a,_ in metro]).strip():
