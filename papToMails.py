@@ -122,9 +122,9 @@ while cururl:
         cururl = nexturl[0].xpath("@href")[0].replace(" ", "%20")
         if not cururl.startswith("http"):
             cururl = "http://www.seloger.com/" + cururl
+        time.sleep(5)
     else:
         cururl = ""
-    time.sleep(5)
 
 # PARUVENDU.FR
 try:
