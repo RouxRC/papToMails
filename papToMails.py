@@ -5,8 +5,7 @@ import lxml.html as html
 from cStringIO import StringIO
 from gzip import GzipFile
 import re, time, sys
-import urllib2
-import smtplib
+import urllib2, smtplib, socket
 from email.mime.text import MIMEText
 from config import DEBUG, pap_url, seloger_url, paruvendu_url, emails, admin_emails
 
@@ -39,7 +38,7 @@ re_format_paruv = re.compile(r'^(.*) environ - (.*pièces) (.*)$')
 # PAP.FR
 try:
     doc = html.fromstring(urllib2.urlopen(pap_url, timeout=60).read())
-except (urllib2.URLError, ValueError):
+except (urllib2.URLError, ValueError, socket.timeout):
     pass
 else:
     annonces = doc.find_class("search-results-item")
