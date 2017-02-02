@@ -86,7 +86,12 @@ opener.addheaders = [
     ('Connection', 'keep-alive')
 ]
 while cururl:
-    doc = html.fromstring(gunzip(opener.open(cururl).read()).decode("utf8"))
+    try:
+        doc = html.fromstring(gunzip(opener.open(cururl).read()).decode("utf8"))
+    except urllib2.HTTPError as e:
+        print >> sys.stderr, "WARNING on SeLoger:",  cururl, e, "\n----\n"
+        sendMail("SeLoger", "NO RESULTS", "Warning, error for:", cururl, e, admin=True)
+        break
     annonces = doc.find_class("listing")
     if not annonces:
         print >> sys.stderr, "WARNING:", "no results found for", cururl, "\n----\n"
