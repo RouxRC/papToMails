@@ -88,7 +88,7 @@ opener.addheaders = [
 while cururl:
     try:
         doc = html.fromstring(gunzip(opener.open(cururl).read()).decode("utf8"))
-    except urllib2.HTTPError as e:
+    except (urllib2.HTTPError, socket.error) as e:
         print >> sys.stderr, "WARNING on SeLoger:",  cururl, e, "\n----\n"
         sendMail("SeLoger", "NO RESULTS", "Warning, error %s for:" % e, cururl, admin=True)
         break
