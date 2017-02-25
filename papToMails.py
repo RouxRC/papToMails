@@ -133,11 +133,12 @@ while cururl:
 # PARUVENDU.FR
 try:
     doc = html.parse(paruvendu_url)
-except IOError:
-    pass
-else:
     doc = doc.getroot()
     annonces = doc.find_class("annonce")
+except IOError, AttributeError:
+    sendMail("ParuVendu", "HTTP ERROR", "Warning, no webpage found for:", paruvendu_url, admin=True)
+    pass
+else:
     for annonce in annonces:
         url = annonce.xpath("a/@href")[0]
         if not url.startswith("http"):
