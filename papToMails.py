@@ -135,7 +135,7 @@ try:
     doc = html.parse(paruvendu_url)
     doc = doc.getroot()
     annonces = doc.find_class("annonce")
-except IOError, AttributeError:
+except (IOError, AttributeError):
     sendMail("ParuVendu", "HTTP ERROR", "Warning, no webpage found for:", paruvendu_url, admin=True)
     pass
 else:
